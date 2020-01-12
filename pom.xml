@@ -121,9 +121,9 @@
             </plugin>
 
             <!--
-			checks the POM file has the order specified by the POM Code Convention
-			http://maven.apache.org/developers/conventions/code.html#POM_Code_Convention
-			-->
+            checks the POM file has the order specified by the POM Code Convention
+            http://maven.apache.org/developers/conventions/code.html#POM_Code_Convention
+            -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>tidy-maven-plugin</artifactId>
