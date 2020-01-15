@@ -2,20 +2,21 @@ package org.reactome.release;
 
 import org.gk.model.GKInstance;
 import org.gk.persistence.MySQLAdaptor;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import org.mockito.junit.MockitoJUnitRunner;
-
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class BioModelsUtilitiesTester {
 
     @Mock
@@ -43,5 +44,4 @@ public class BioModelsUtilitiesTester {
 
         assertThat(returnedDbInstance, is(nullValue()));
     }
-
 }
