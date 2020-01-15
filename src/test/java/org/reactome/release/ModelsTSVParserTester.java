@@ -81,7 +81,7 @@ public class ModelsTSVParserTester {
         Map<String, Set<String>> pathwayToBioModelsIds = ModelsTSVParser.parse(filepath);
 
         // Tests pathway contains correct BioModels id
-        assertThat(pathwayToBioModelsIds.get("R-HSA-199418"), contains("BIOMD0000000175"));
+        assertThat(pathwayToBioModelsIds.get("R-HSA-199418"), hasItem("BIOMD0000000175"));
     }
 
     @Test
