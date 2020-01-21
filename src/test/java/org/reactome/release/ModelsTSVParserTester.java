@@ -1,9 +1,9 @@
 package org.reactome.release;
 
-import org.junit.Test;
-
 import java.nio.file.Paths;
 import java.util.*;
+
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
