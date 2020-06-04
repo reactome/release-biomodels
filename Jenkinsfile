@@ -1,4 +1,3 @@
-
 import groovy.json.JsonSlurper
 // This Jenkinsfile is used by Jenkins to run the BioModels step of Reactome's release.
 // It requires that the OrthoinferenceStableIdentifierHistory step has been run successfully before it can be run.
@@ -160,7 +159,6 @@ pipeline {
 		}
 	}		
 }
-
 // Utility function that checks if a git directory exists. If not, it is cloned.
 def cloneOrPullGitRepo(String repoName) {
 	// This method is deceptively named -- it can also check if a directory exists
