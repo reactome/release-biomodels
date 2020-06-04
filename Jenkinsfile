@@ -142,7 +142,7 @@ pipeline {
 					sh "mv --backup=numbered *_${currentRelease}_*.dump.gz databases/"
 					sh "mv graph-importer/logs/* logs/"
 					sh "mv analysis-core/logs/* logs/"
-					sh "mv ${biomodelsPath}/logs/* logs/
+					sh "mv ${biomodelsPath}/logs/* logs/"
 					sh "mv ${biomodelsPath}/jsbml.log logs/"
 					sh "mv ${biomodelsPath}/models2pathways.tsv data/"
 					sh "mv analysis-core/analysis-biomodels-v${currentRelease}.bin data/
