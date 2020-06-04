@@ -27,6 +27,7 @@ pipeline {
 				}
 			}
 		}
+		/*
 		stage('Setup: Back up DB'){
 			steps{
 				script{
@@ -38,7 +39,7 @@ pipeline {
 				}
 			}
 		}
-		stage('Create reactome database from release_current') {
+		stage('Setup: Create reactome database from release_current') {
 			steps{
 				script{
 					withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]) {
@@ -49,7 +50,7 @@ pipeline {
 			}
 		}
 		// This stage generates the graph database using the graph-importer module, and replaces the current graph db with it.
-		stage('Post: Generate Graph Database'){
+		stage('Setup: Generate Graph Database'){
 			steps{
 				script{
 					cloneOrPullGitRepo("release-jenkins-utils")
@@ -73,6 +74,23 @@ pipeline {
 					}
 				}
 			}			
+		}
+		*/
+		stage('Setup: Generate Analysis.bin file'){
+			steps{
+				script{
+					cloneOrPullGitRepo("analysis-core")
+					dir("analysis-core"){
+						def analysisBinName = "analysis-biomodels-v${currentRelease}.bin"
+						sh "mvn clean compile assembly:single"
+						withCredentials([usernamePassword(credentialsId: 'neo4jUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
+							sh "java -jar target/analysis-core-jar-with-dependencies.jar --user $user --password $pass --output ./${analysisBinName}"
+						}
+											def cwd = pwd()
+						sh "ln -sf ${cwd}/${analysisBinName} ${env.ANALYSIS_BIN_SYMLINK_ABS_PATH}"
+					}
+				}
+			}
 		}
 		/*
 		stage('Setup: Build jar file'){
