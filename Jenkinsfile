@@ -105,7 +105,7 @@ pipeline {
 					dir("${env.ABS_RELEASE_PATH}/biomodels/"){
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							sh "perl biomodels.pl -db ${env.RELEASE_CURRENT}"
-							sh "cp models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${currentRelease}/
+							sh "cp models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${currentRelease}/"
 						}
 					}
 				}
