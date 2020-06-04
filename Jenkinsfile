@@ -43,7 +43,7 @@ pipeline {
 				script{
 					withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]) {
 						sh "mysql -u$user -p$pass -e \'drop database if exists ${env.REACTOME}; create database ${env.REACTOME}\'"
-						sh "mysqldump --opt -u$user -p$pass ${env.RELEASE_CURRENT} | mysql -u$user -p$pass ${env.REACTOME}"
+						sh "zcat ${env.RELEASE_CURRENT}_${currentRelease}_before_biomodels.dump.gz | mysql -u$user -p$pass ${env.REACTOME}"
 					}
 				}
 			}
