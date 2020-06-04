@@ -144,6 +144,7 @@ pipeline {
 					sh "mv ${biomodelsPath}/jsbml.log logs/"
 					sh "mv ${biomodelsPath}/models2pathways.tsv data/"
 					sh "mv analysis-core/analysis-biomodels-v${currentRelease}.bin data/"
+					sh "mv /tmp/intact-micluster.txt data/"
 					sh "gzip data/* logs/*"
 					sh "mv graph-importer/graphdb_${currentRelease}_biomodels.tgz data/"
 					sh "mv ${biomodelsPath}/BioModels_Database-*sbml_files.tar.bz2 data/"
