@@ -27,7 +27,6 @@ pipeline {
 				}
 			}
 		}
-		/*
 		stage('Setup: Back up DB'){
 			steps{
 				script{
@@ -132,14 +131,11 @@ pipeline {
 				}
 			}
 		}
-		*/
 		stage('Post: Archive Outputs'){
 			steps{
 				script{
-					
 					def s3Path = "${env.S3_RELEASE_DIRECTORY_URL}/${currentRelease}/biomodels"
 					def biomodelsPath = "${env.ABS_RELEASE_PATH}/biomodels"
-					/*
 					sh "mkdir -p databases/ data/"
 					sh "mv --backup=numbered *_${currentRelease}_*.dump.gz databases/"
 					sh "mv graph-importer/logs/* logs/"
@@ -154,7 +150,6 @@ pipeline {
 					sh "aws s3 --no-progress --recursive cp databases/ $s3Path/databases/"
 					sh "aws s3 --no-progress --recursive cp logs/ $s3Path/logs/"
 					sh "aws s3 --no-progress --recursive cp data/ $s3Path/data/"
-					*/
 					sh "rm -r databases logs data ${biomodelsPath}/BioModels_Database-*-sbml_files"
 					sh "rm -rf graph-importer*"
 					sh "rm -rf analysis-core*"
