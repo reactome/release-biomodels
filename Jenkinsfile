@@ -60,7 +60,7 @@ pipeline {
 					dir("graph-importer"){
 						sh "mvn clean compile assembly:single"
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
-							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.REACTOME} --user $user --password $pass --neo4j ./graph.db"
+							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.REACTOME} --user $user --password $pass --neo4j ./graph.db --interactions"
 							sh "tar -zcf graphdb_${currentRelease}_biomodels.tgz graph.db/"
 							sh "mv graph.db /tmp/"
 							sh "sudo service tomcat7 stop"
@@ -85,15 +85,14 @@ pipeline {
 						withCredentials([usernamePassword(credentialsId: 'neo4jUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							sh "java -jar target/analysis-core-jar-with-dependencies.jar --user $user --password $pass --output ./${analysisBinName} --verbose"
 						}
-											def cwd = pwd()
-						sh "ln -sf ${cwd}/${analysisBinName} ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/analysis.bin"
+						sh "cp ${analysisBinName} ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/"
+						sh "ln -sf ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/${analysisBinName} ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/analysis.bin"
 						sh "sudo service tomcat7 stop"
 						sh "sudo service tomcat7 start"
 					}
 				}
 			}
 		}
-		*/
 		stage('Setup: Build jar file'){
 			steps{
 				script{
@@ -107,6 +106,7 @@ pipeline {
 					dir("${env.ABS_RELEASE_PATH}/biomodels/"){
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							sh "perl biomodels.pl -db ${env.RELEASE_CURRENT}"
+							sh "cp models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${currentRelease}/
 						}
 					}
 				}
@@ -132,18 +132,33 @@ pipeline {
 				}
 			}
 		}
-		/*
-		stage('Post: Archive logs and backups'){
+		*/
+		stage('Post: Archive Outputs'){
 			steps{
 				script{
-					sh "mkdir -p archive/${currentRelease}/logs"
-					sh "mv --backup=numbered *_${currentRelease}_*.dump.gz archive/${currentRelease}/"
-					sh "gzip logs/*"
-					sh "mv logs/* archive/${currentRelease}/logs/"
+					def s3Path = "${env.S3_RELEASE_DIRECTORY_URL}/${currentRelease}/biomodels"
+					def biomodelsPath = "${env.ABS_RELEASE_PATH}/biomodels"
+					sh "mkdir -p databases/ data/"
+					sh "mv --backup=numbered *_${currentRelease}_*.dump.gz databases/"
+					sh "mv graph-importer/logs/* logs/"
+					sh "mv analysis-core/logs/* logs/"
+					sh "mv ${biomodelsPath}/logs/* logs/
+					sh "mv ${biomodelsPath}/jsbml.log logs/"
+					sh "mv ${biomodelsPath}/models2pathways.tsv data/"
+					sh "mv analysis-core/analysis-biomodels-v${currentRelease}.bin data/
+					sh "gzip data/* logs/*"
+					sh "mv graph-importer/graphdb_${currentRelease}_biomodels.tgz data/
+					sh "mv ${biomodelsPath}/BioModels_Database-*sbml_files.tar.bz2 data/
+					sh "aws s3 --no-progress --recursive cp databases/ $s3Path/databases/"
+					sh "aws s3 --no-progress --recursive cp logs/ $s3Path/logs/"
+					sh "aws s3 --no-progress --recursive cp data/ $s3Path/data/"
+					//sh "rm -r databases logs data reports orthopairs"
+					//sh "rm -rf graph-importer*"
+					//sh "rm -rf graph-qa*"
+					//sh "rm -rf release-jenkins-utils*"
 				}
 			}
 		}
-		*/
 	}		
 }
 
