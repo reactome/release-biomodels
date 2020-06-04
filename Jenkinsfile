@@ -38,6 +38,16 @@ pipeline {
 				}
 			}
 		}
+		stage('Create reactome database from release_current') {
+			steps{
+				script{
+					withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]) {
+						sh "mysql -u$user -p$pass -e \'drop database if exists ${env.REACTOME}; create database ${env.REACTOME}\'"
+						sh "mysqldump --opt -u$user -p$pass ${env.RELEASE_CURRENT} | mysql -u$user -p$pass ${env.REACTOME}"
+					}
+				}
+			}
+		}
 		// This stage generates the graph database using the graph-importer module, and replaces the current graph db with it.
 		stage('Post: Generate Graph Database'){
 			steps{
@@ -113,4 +123,14 @@ pipeline {
 		}
 		*/
 	}		
+}
+
+// Utility function that checks if a git directory exists. If not, it is cloned.
+def cloneOrPullGitRepo(String repoName) {
+	// This method is deceptively named -- it can also check if a directory exists
+	if(!fileExists(repoName)) {
+		sh "git clone ${env.REACTOME_GITHUB_BASE_URL}/${repoName}"
+	} else {
+		sh "cd ${repoName}; git pull"
+	}
 }
