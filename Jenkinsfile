@@ -38,6 +38,7 @@ pipeline {
 				}
 			}
 		}
+		/*
 		stage('Setup: Create reactome database from release_current') {
 			steps{
 				script{
@@ -131,19 +132,20 @@ pipeline {
 				}
 			}
 		}
+		*/
 		stage('Post: Archive Outputs'){
 			steps{
 				script{
 					def s3Path = "${env.S3_RELEASE_DIRECTORY_URL}/${currentRelease}/biomodels"
 					def biomodelsPath = "${env.ABS_RELEASE_PATH}/biomodels"
-					sh "mkdir -p databases/ data/"
+				/*	sh "mkdir -p databases/ data/"
 					sh "mv --backup=numbered *_${currentRelease}_*.dump.gz databases/"
 					sh "mv graph-importer/logs/* logs/"
 					sh "mv analysis-core/logs/* logs/"
 					sh "mv ${biomodelsPath}/logs/* logs/"
 					sh "mv ${biomodelsPath}/jsbml.log logs/"
 					sh "mv ${biomodelsPath}/models2pathways.tsv data/"
-					sh "mv analysis-core/analysis-biomodels-v${currentRelease}.bin data/"
+					sh "mv analysis-core/analysis-biomodels-v${currentRelease}.bin data/" */
 					sh "mv /tmp/intact-micluster.txt data/"
 					sh "gzip data/* logs/*"
 					sh "mv graph-importer/graphdb_${currentRelease}_biomodels.tgz data/"
