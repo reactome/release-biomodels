@@ -59,7 +59,9 @@ pipeline {
 					dir("graph-importer"){
 						sh "mvn clean compile assembly:single"
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
-							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.REACTOME} --user $user --password $pass --neo4j /tmp/graph.db"
+							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.REACTOME} --user $user --password $pass --neo4j ./graph.db"
+							sh "tar -zcf graphdb_${currentRelease}_biomodels.tgz graph.db/"
+							sh "mv graph.db /tmp/"
 							sh "sudo service tomcat7 stop"
 							sh "sudo service neo4j stop"
 							// This static script adjusts permissions of the graph.db folder and moves it to /var/lib/neo4j/data/databases/.
