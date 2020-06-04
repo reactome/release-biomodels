@@ -145,10 +145,10 @@ pipeline {
 					sh "mv ${biomodelsPath}/logs/* logs/"
 					sh "mv ${biomodelsPath}/jsbml.log logs/"
 					sh "mv ${biomodelsPath}/models2pathways.tsv data/"
-					sh "mv analysis-core/analysis-biomodels-v${currentRelease}.bin data/
+					sh "mv analysis-core/analysis-biomodels-v${currentRelease}.bin data/"
 					sh "gzip data/* logs/*"
-					sh "mv graph-importer/graphdb_${currentRelease}_biomodels.tgz data/
-					sh "mv ${biomodelsPath}/BioModels_Database-*sbml_files.tar.bz2 data/
+					sh "mv graph-importer/graphdb_${currentRelease}_biomodels.tgz data/"
+					sh "mv ${biomodelsPath}/BioModels_Database-*sbml_files.tar.bz2 data/"
 					sh "aws s3 --no-progress --recursive cp databases/ $s3Path/databases/"
 					sh "aws s3 --no-progress --recursive cp logs/ $s3Path/logs/"
 					sh "aws s3 --no-progress --recursive cp data/ $s3Path/data/"
