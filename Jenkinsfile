@@ -88,6 +88,8 @@ pipeline {
 						}
 											def cwd = pwd()
 						sh "ln -sf ${cwd}/${analysisBinName} ${env.ANALYSIS_BIN_SYMLINK_ABS_PATH}"
+						sh "sudo service tomcat7 stop"
+						sh "sudo service tomcat7 start"
 					}
 				}
 			}
