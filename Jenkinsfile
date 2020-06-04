@@ -75,7 +75,6 @@ pipeline {
 				}
 			}			
 		}
-		*/
 		stage('Setup: Generate Analysis.bin file'){
 			steps{
 				script{
@@ -87,14 +86,14 @@ pipeline {
 							sh "java -jar target/analysis-core-jar-with-dependencies.jar --user $user --password $pass --output ./${analysisBinName} --verbose"
 						}
 											def cwd = pwd()
-						sh "ln -sf ${cwd}/${analysisBinName} ${env.ANALYSIS_BIN_SYMLINK_ABS_PATH}"
+						sh "ln -sf ${cwd}/${analysisBinName} ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/analysis.bin"
 						sh "sudo service tomcat7 stop"
 						sh "sudo service tomcat7 start"
 					}
 				}
 			}
 		}
-		/*
+		*/
 		stage('Setup: Build jar file'){
 			steps{
 				script{
@@ -133,6 +132,7 @@ pipeline {
 				}
 			}
 		}
+		/*
 		stage('Post: Archive logs and backups'){
 			steps{
 				script{
