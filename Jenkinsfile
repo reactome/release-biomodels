@@ -84,7 +84,7 @@ pipeline {
 						def analysisBinName = "analysis-biomodels-v${currentRelease}.bin"
 						sh "mvn clean compile assembly:single"
 						withCredentials([usernamePassword(credentialsId: 'neo4jUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
-							sh "java -jar target/analysis-core-jar-with-dependencies.jar --user $user --password $pass --output ./${analysisBinName}"
+							sh "java -jar target/analysis-core-jar-with-dependencies.jar --user $user --password $pass --output ./${analysisBinName} --verbose"
 						}
 											def cwd = pwd()
 						sh "ln -sf ${cwd}/${analysisBinName} ${env.ANALYSIS_BIN_SYMLINK_ABS_PATH}"
