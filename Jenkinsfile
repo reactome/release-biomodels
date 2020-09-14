@@ -14,15 +14,15 @@ pipeline {
 					currentRelease = (pwd() =~ /Releases\/(\d+)\//)[0][1];
 					previousRelease = (pwd() =~ /Releases\/(\d+)\//)[0][1].toInteger() - 1;
 					// This queries the Jenkins API to confirm that the most recent build of OrthoinferenceStableIdentifierHistory was successful.
-					def OrthoinferenceStableIdentifierHistoryStatusUrl = httpRequest authentication: 'jenkinsKey', validResponseCodes: "${env.VALID_RESPONSE_CODES}", url: "${env.JENKINS_JOB_URL}/job/${currentRelease}/job/Relational-Database-Updates/job/OrthoinferenceStableIdentifierHistory/lastBuild/api/json"
-					if (OrthoinferenceStableIdentifierHistoryStatusUrl.getStatus() == 404) {
-						error("OrthoinferenceStableIdentifierHistory has not yet been run. Please complete a successful build.")
-					} else {
-						def OrthoinferenceStableIdentifierHistoryJson = new JsonSlurper().parseText(OrthoinferenceStableIdentifierHistoryStatusUrl.getContent())
-						if(OrthoinferenceStableIdentifierHistoryJson['result'] != "SUCCESS"){
-							error("Most recent OrthoinferenceStableIdentifierHistory build status: " + OrthoinferenceStableIdentifierHistoryJson['result'] + ". Please complete a successful build.")
-						}
-					}
+//					def OrthoinferenceStableIdentifierHistoryStatusUrl = httpRequest authentication: 'jenkinsKey', validResponseCodes: "${env.VALID_RESPONSE_CODES}", url: "${env.JENKINS_JOB_URL}/job/${currentRelease}/job/Relational-Database-Updates/job/OrthoinferenceStableIdentifierHistory/lastBuild/api/json"
+//					if (OrthoinferenceStableIdentifierHistoryStatusUrl.getStatus() == 404) {
+//						error("OrthoinferenceStableIdentifierHistory has not yet been run. Please complete a successful build.")
+//					} else {
+//						def OrthoinferenceStableIdentifierHistoryJson = new JsonSlurper().parseText(OrthoinferenceStableIdentifierHistoryStatusUrl.getContent())
+//						if(OrthoinferenceStableIdentifierHistoryJson['result'] != "SUCCESS"){
+//							error("Most recent OrthoinferenceStableIdentifierHistory build status: " + OrthoinferenceStableIdentifierHistoryJson['result'] + ". Please complete a successful build.")
+//						}
+//					}
 				}
 			}
 		}
