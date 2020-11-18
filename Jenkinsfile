@@ -42,7 +42,7 @@ pipeline {
 						utils.buildJarFile()
 						// This generates the graph database.
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
-							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.RELEASE_CURRENT_DB} --user $user --password $pass --neo4j /tmp/graph.db"
+							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.RELEASE_CURRENT_DB} --user $user --password $pass --neo4j /tmp/graph.db --interactions"
 							sh "sudo service tomcat7 stop"
 							sh "sudo service neo4j stop"
 							// This static script adjusts permissions of the graph.db folder and moves it to /var/lib/neo4j/data/databases/.
@@ -77,8 +77,8 @@ pipeline {
 		stage('Setup: Build jar file'){
 			steps{
 				script{
-					// BioModels Jar file
-          				utils.buildJarFile
+					// release-biomodels Jar file
+          				utils.buildJarFile()
 				}
 			}
 		}
@@ -89,6 +89,8 @@ pipeline {
 					dir("${env.ABS_RELEASE_PATH}/biomodels/"){
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							sh "perl biomodels.pl -db ${env.RELEASE_CURRENT_DB}"
+					        // Might be first time this directory will be accessed
+					        sh "mkdir -p ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
 							sh "cp models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
 						}
 					}
@@ -99,7 +101,7 @@ pipeline {
 			steps{
 				script{
 					withCredentials([file(credentialsId: 'Config', variable: 'ConfigFile')]) {
-						sh "java -jar target/biomodels-*-jar-with-dependencies.jar $ConfigFile ${env.ABS_RELEASE_PATH}/biomodels/models2pathways.tsv"
+						sh "java -jar target/biomodels-*-jar-with-dependencies.jar $ConfigFile ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/models2pathways.tsv"
 					}
 				}
 			}
