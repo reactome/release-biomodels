@@ -18,12 +18,11 @@ pipeline {
 				}
 			}
 		}
-		stage('Setup: Back up release_current DB and create reactome from dump'){
+		stage('Setup: Back up release_current'){
 			steps{
 				script{
 					withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
-						def releaseCurrentDumpName = utils.takeDatabaseDumpAndGzip("${env.RELEASE_CURRENT_DB}", "biomodels", "before", "${env.RELEASE_SERVER}")
-						utils.replaceDatabase("${env.REACTOME_DB}", "${releaseCurrentDumpName}")
+						utils.takeDatabaseDumpAndGzip("${env.RELEASE_CURRENT_DB}", "biomodels", "before", "${env.RELEASE_SERVER}")
           				}
 				}
 			}
@@ -89,8 +88,8 @@ pipeline {
 					dir("${env.ABS_RELEASE_PATH}/biomodels/"){
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							sh "perl biomodels.pl -db ${env.RELEASE_CURRENT_DB}"
-					        // Might be first time this directory will be accessed
-					        sh "mkdir -p ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
+							// Might be first time this directory will be accessed
+							sh "mkdir -p ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
 							sh "cp models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
 						}
 					}
@@ -106,7 +105,7 @@ pipeline {
 				}
 			}
 		}
-		stage('Post: Back up DB'){
+		stage('Post: Back up release_current'){
 			steps{
 				script{
 					withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
