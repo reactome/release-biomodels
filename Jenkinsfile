@@ -92,9 +92,10 @@ pipeline {
 					def releaseVersion = utils.getReleaseVersion()
 					
 					dir("${env.ABS_RELEASE_PATH}/biomodels/"){
-						// Downloads the BioModels_Database-r31_pub-sbml_files that are stored on S3.
+						// Downloads the BioModels_Database-r31_pub-sbml_files from EBI FTP directory.
+						// At time of writing (February 2021), this file hadn't been updated since June 2017.
 						def biomodelsDatabaseArchive = "BioModels_Database-r31_pub-sbml_files"
-						sh "aws s3 --no-progress cp --recursive ${env.S3_RELEASE_DIRECTORY_URL}/supplementary_files/${biomodelsDatabaseArchive}.tar.bz2 ."
+						sh "wget -N --no-verbose http://ftp.ebi.ac.uk/pub/databases/biomodels/releases/latest/${biomodelsDatabaseArchive}.tar.bz2"
 						// Runs perl script and then moves the models2pathways.tsv file to the downloads directory.
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							sh "perl biomodels.pl -db ${env.RELEASE_CURRENT_DB}"
