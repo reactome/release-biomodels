@@ -145,7 +145,8 @@ pipeline {
 				script{
 				    	def releaseVersion = utils.getReleaseVersion()
 					def biomodelsPath = "${env.ABS_RELEASE_PATH}/biomodels"
-					
+					// Ensure that the models2pathways.tsv file is in the right place for archiving.
+					sh "cp ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/models2pathways.tsv ${biomodelsPath}/models2pathways.tsv"
 					// Creates tar archive out of 'graph.db/' folder that should exist in the graph-importer directory.
 					dir("graph-importer"){
 				        	utils.createGraphDatabaseTarFile("graph.db/", "biomodels")
