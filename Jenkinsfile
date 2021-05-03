@@ -153,7 +153,7 @@ pipeline {
 				    	}
 				    	sh "mv graph-importer/biomodels_graph_database.dump* ."
 					
-                    			def dataFiles = ["${biomodelsPath}/models2pathways.tsv", "analysis-core/analysis-biomodels-v${releaseVersion}.bin","/tmp/intact-micluster.txt"]
+                    			def dataFiles = ["${biomodelsPath}/models2pathways.tsv", "analysis-core/analysis-biomodels-v${releaseVersion}.bin"]
 					def logFiles = ["${biomodelsPath}/logs/*", "${biomodelsPath}/jsbml.log", "/tmp/biomodels.log", "graph-importer/parser-messages.txt", "graph-importer/logs/*","analysis-core/logs/*"]
 					def foldersToDelete = ["graph-importer*", "analysis-core*", "release-jenkins-utils*"]
 					
