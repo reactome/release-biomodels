@@ -47,7 +47,7 @@ pipeline {
 						// This generates the graph database using the 'release_current' DB.
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							def graphDbPath = "/tmp/graph.db"
-							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.RELEASE_CURRENT_DB} --user $user --password $pass --neo4j ${graphDbPath} --interactions"
+							sh "java -jar target/GraphImporter-exec.jar --name ${env.RELEASE_CURRENT_DB} --user $user --password $pass --neo4j ${graphDbPath} --interactions"
 							sh "cp -r ${graphDbPath} ."
 							sh "sudo service tomcat9 stop"
 							sh "sudo service neo4j stop"
@@ -78,7 +78,7 @@ pipeline {
 						utils.buildJarFileWithPackage()
 						
 						withCredentials([usernamePassword(credentialsId: 'neo4jUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
-							sh "java -jar target/analysis-core-jar-with-dependencies.jar --user $user --password $pass --output ./${analysisBinName} --verbose"
+							sh "java -jar target/analysis-core-exec.jar --user $user --password $pass --output ./${analysisBinName} --verbose"
 						}
 
 						// Symlinks the analysis-biomodels-vXX.bin file to the generic analysis.bin path.
