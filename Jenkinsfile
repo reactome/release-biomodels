@@ -47,12 +47,12 @@ pipeline {
 						    def graphDbPath = "/tmp/graph.db"
 							sh "java -jar target/GraphImporter-jar-with-dependencies.jar --name ${env.RELEASE_CURRENT_DB} --user $user --password $pass --neo4j ${graphDbPath} --interactions"
 							sh "cp -r ${graphDbPath} ."
-							sh "sudo service tomcat7 stop"
+							sh "sudo service tomcat9 stop"
 							sh "sudo service neo4j stop"
 							// This static script adjusts permissions of the graph.db folder and moves it to /var/lib/neo4j/data/databases/.
 							sh "sudo bash ${env.JENKINS_HOME_PATH}/changeGraphDatabase.sh"
 							sh "sudo service neo4j start"
-							sh "sudo service tomcat7 start"
+							sh "sudo service tomcat9 start"
 							sh "rm ${env.JENKINS_HOME_PATH}/changeGraphDatabase.sh"
 						}
 					}
@@ -78,8 +78,8 @@ pipeline {
 						sh "cp ${analysisBinName} ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/"
 						sh "ln -sf ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/${analysisBinName} ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/analysis.bin"
 						// Restart tomcat7 so that updated graph DB and analysis bin is being used.
-						sh "sudo service tomcat7 stop"
-						sh "sudo service tomcat7 start"
+						sh "sudo service tomcat9 stop"
+						sh "sudo service tomcat9 start"
 					}
 				}
 			}
