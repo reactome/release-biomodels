@@ -15,7 +15,6 @@ pipeline {
 			steps{
 				script{
 					utils.checkUpstreamBuildsSucceeded("Relational-Database-Updates/job/OrthoinferenceStableIdentifierHistory")
-					utils.checkUpstreamBuildsSucceeded("Relational-Database-Updates/job/AddLinks-Insertion")
 				}
 			}
 		}
