@@ -117,8 +117,7 @@
                                 <enabled>true</enabled>
                         </snapshots>
                 </repository>
-        </repositories>
-
+    </repositories>
     <build>
         <plugins>
             <!-- sets the Java compiler version targeted by Maven -->
