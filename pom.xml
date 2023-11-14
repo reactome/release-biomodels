@@ -92,7 +92,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <repositories>
                 <!-- EBI repo -->
                 <repository>
@@ -119,6 +119,7 @@
                         </snapshots>
                 </repository>
     </repositories>
+
     <build>
         <plugins>
             <!-- sets the Java compiler version targeted by Maven -->
