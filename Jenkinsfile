@@ -93,6 +93,52 @@ pipeline {
 			}
 		}
 
+                stage("Build Biomodels mapper"){
+			steps{
+				script{
+					utils.cloneOrUpdateLocalRepo("biomodels-mapper")
+					dir("biomodels-mapper"){
+						utils.buildJarFileWithPackage()
+					}
+				}
+			}
+		}
+
+		stage("Get BioModels SBML files"){
+			steps{
+				script{
+					dir("biomodels-mapper"){
+						sh "rm -rf BioModels_Database*"
+						sh "wget --no-passive ftp://ftp.ebi.ac.uk/pub/databases/biomodels/releases/2017-06-26/BioModels_Database-r31_pub-sbml_files.tar.bz2"
+						sh "tar xvfj BioModels_Database-r31_pub-sbml_files.tar.bz2"
+					}
+				}
+			}
+		}
+		stage("Run BioModels mapper"){
+			steps{
+				script{
+					def releaseVersion = utils.getReleaseVersion()
+					dir("biomodels-mapper"){
+						sh "mkdir -p output"
+						sh "rm output/* -f"
+						sh "java -jar -Xms5120M -Xmx10240M biomodels.jar -o ./output/ -r /usr/local/reactomes/Reactome/production/AnalysisService/input/analysis.bin -b BioModels_Database-r31_pub-sbml_files/curated"
+						sh "cp output/models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
+					}
+				}
+			}
+		}
+
+		stage ("Delete SBML files") {
+			steps{
+				script{
+					dir("biomodels-mapper"){
+						sh "rm BioModels_Database-r31_pub-sbml_files.tar.bz2"
+						sh "rm BioModels_Database-r31_pub-sbml_files -rf"
+					}
+				}
+			}
+		}
 		// Runs the perl 'biomodels.pl' script that builds the models2pathways.tsv file from release_current DB.
 		stage('Main: Generate BioModels file'){
 			steps{
@@ -117,10 +163,9 @@ pipeline {
 					}
 				}
 			}
-		}
-
+		
 		// Builds jar file for the release-biomodels project.
-		stage('Setup: Build jar file'){
+		stage('Setup: Build release-biomodels jar file'){
 			steps{
 				script{
 					// BioModels Jar file
