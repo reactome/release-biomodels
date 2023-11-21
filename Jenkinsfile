@@ -139,30 +139,6 @@ pipeline {
 				}
 			}
 		}
-		// Runs the perl 'biomodels.pl' script that builds the models2pathways.tsv file from release_current DB.
-		stage('Main: Generate BioModels file'){
-			steps{
-				script{
-					def releaseVersion = utils.getReleaseVersion()
-					
-					dir("${env.ABS_RELEASE_PATH}/biomodels/"){
-						// Downloads the BioModels_Database-r31_pub-sbml_files from EBI FTP directory.
-						// At time of writing (February 2021), this file hadn't been updated since June 2017.
-						def biomodelsDatabaseArchive = "BioModels_Database-r31_pub-sbml_files"
-						sh "wget -N --no-verbose http://ftp.ebi.ac.uk/pub/databases/biomodels/releases/latest/${biomodelsDatabaseArchive}.tar.bz2"
-
-						// Runs perl script and then moves the models2pathways.tsv file to the downloads directory.
-						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
-							sh "perl biomodels.pl -db ${env.RELEASE_CURRENT_DB}"
-							// Might be first time this directory will be accessed
-							sh "mkdir -p ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
-							sh "cp models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
-						}
-						sh "rm ${biomodelsDatabaseArchive}.tar.bz2"
-						sh "rm -r ${biomodelsDatabaseArchive}"
-					}
-				}
-			}
 		
 		// Builds jar file for the release-biomodels project.
 		stage('Setup: Build release-biomodels jar file'){
@@ -178,7 +154,7 @@ pipeline {
 		stage('Main: Add BioModels links'){
 			steps{
 				script{
-				    def releaseVersion = utils.getReleaseVersion()
+				        def releaseVersion = utils.getReleaseVersion()
 					withCredentials([file(credentialsId: 'Config', variable: 'ConfigFile')]) {
 						sh "java -jar target/biomodels-*-jar-with-dependencies.jar $ConfigFile ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/models2pathways.tsv"
 					}
