@@ -109,7 +109,7 @@ pipeline {
 				script{
 					dir("biomodels-mapper"){
 						sh "rm -rf BioModels_Database*"
-						sh "wget --no-passive ftp://ftp.ebi.ac.uk/pub/databases/biomodels/releases/2017-06-26/BioModels_Database-r31_pub-sbml_files.tar.bz2"
+						sh "wget https://ftp.ebi.ac.uk/pub/databases/biomodels/releases/2017-06-26/BioModels_Database-r31_pub-sbml_files.tar.bz2"
 						sh "tar xvfj BioModels_Database-r31_pub-sbml_files.tar.bz2"
 					}
 				}
