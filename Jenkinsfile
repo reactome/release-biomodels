@@ -111,7 +111,7 @@ pipeline {
 					dir("biomodels-mapper"){
 						sh "mkdir -p output"
 						sh "rm output/* -f"
-						sh "java -jar -Xms5120M -Xmx10240M target/biomodels-mapper-2.0.jar -o ./output/ -r /usr/local/reactomes/Reactome/production/AnalysisService/input/analysis.bin"
+						sh "java -jar -Xms5120M -Xmx10240M target/biomodels-mapper-2.0.jar -o ./output/ -r /usr/local/reactomes/Reactome/production/AnalysisService/input/analysis.bin -b BioModels_Database-r31_pub-sbml_files/curated"
 						sh "cp output/models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
 					}
 				}
