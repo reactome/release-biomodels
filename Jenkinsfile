@@ -47,7 +47,7 @@ pipeline {
 						// This generates the graph database using the 'release_current' DB.
 						withCredentials([usernamePassword(credentialsId: 'mySQLUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							def graphDbPath = "/tmp/graph.db"
-							sh "java -jar target/GraphImporter-exec.jar --name ${env.RELEASE_CURRENT_DB} --user $user --password $pass --neo4j ${graphDbPath} --interactions"
+							sh "java -jar target/GraphImporter-exec.jar --intactFile /var/lib/jenkins/workspace/SliceQA/Run_Slice_QA/graph-importer/intact-micluster.txt --name ${env.RELEASE_CURRENT_DB} --user $user --password $pass --neo4j ${graphDbPath} --interactions"
 							sh "cp -r ${graphDbPath} ."
 							sh "sudo service tomcat9 stop"
 							sh "sudo service neo4j stop"
@@ -111,7 +111,8 @@ pipeline {
 					dir("biomodels-mapper"){
 						sh "mkdir -p output"
 						sh "rm output/* -f"
-						sh "java -jar -Xms5120M -Xmx10240M target/biomodels-mapper-2.0.jar -o ./output/ -r /usr/local/reactomes/Reactome/production/AnalysisService/input/analysis.bin -b BioModels_Database-r31_pub-sbml_files/curated"
+						sh "java -jar -Xms5120M -Xmx10240M target/biomodels-mapper-2.0.jar -o ./output/ -r /usr/local/reactomes/Reactome/production/AnalysisService/input/analysis.bin -b /tmp/BioModels_Database-r31_pub-sbml_files"
+						sh "rm -rf /tmp/BioModels_Database-r31_pub-sbml_files"
 						sh "cp output/models2pathways.tsv ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/"
 					}
 				}
