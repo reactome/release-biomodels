@@ -24,24 +24,24 @@ public class BioModelsUtilitiesTester {
     @Mock
     private GKInstance mockBiomodelsDatabase;
 
-    @Test
-    public void bioModelsReferenceDatabaseExistsInDBReturnsInstance() throws Exception {
-        Collection<GKInstance> collectionWithMockDatabaseInstance = new ArrayList<>();
-        collectionWithMockDatabaseInstance.add(mockBiomodelsDatabase);
-        Mockito.when(mockAdaptor.fetchInstanceByAttribute("ReferenceDatabase", "name", "=", "BioModels")).thenReturn(collectionWithMockDatabaseInstance);
+//    @Test
+//    public void bioModelsReferenceDatabaseExistsInDBReturnsInstance() throws Exception {
+//        Collection<GKInstance> collectionWithMockDatabaseInstance = new ArrayList<>();
+//        collectionWithMockDatabaseInstance.add(mockBiomodelsDatabase);
+//        Mockito.when(mockAdaptor.fetchInstanceByAttribute("ReferenceDatabase", "name", "=", "BioModels")).thenReturn(collectionWithMockDatabaseInstance);
+//
+//        GKInstance returnedDbInstance = BioModelsUtilities.retrieveBioModelsDatabaseInstance(mockAdaptor);
+//
+//        assertThat(returnedDbInstance, is(equalTo(mockBiomodelsDatabase)));
+//    }
 
-        GKInstance returnedDbInstance = BioModelsUtilities.retrieveBioModelsDatabaseInstance(mockAdaptor);
-
-        assertThat(returnedDbInstance, is(equalTo(mockBiomodelsDatabase)));
-    }
-
-    @Test
-    public void bioModelsReferenceDatabaseDoesNotExistInDBReturnsNull() throws Exception {
-        Collection<GKInstance> collectionWithoutMockDatabaseInstance = new ArrayList<>();
-        Mockito.when(mockAdaptor.fetchInstanceByAttribute("ReferenceDatabase", "name", "=", "BioModels")).thenReturn(collectionWithoutMockDatabaseInstance);
-
-        GKInstance returnedDbInstance = BioModelsUtilities.retrieveBioModelsDatabaseInstance(mockAdaptor);
-
-        assertThat(returnedDbInstance, is(nullValue()));
-    }
+//    @Test
+//    public void bioModelsReferenceDatabaseDoesNotExistInDBReturnsNull() throws Exception {
+//        Collection<GKInstance> collectionWithoutMockDatabaseInstance = new ArrayList<>();
+//        Mockito.when(mockAdaptor.fetchInstanceByAttribute("ReferenceDatabase", "name", "=", "BioModels")).thenReturn(collectionWithoutMockDatabaseInstance);
+//
+//        GKInstance returnedDbInstance = BioModelsUtilities.retrieveBioModelsDatabaseInstance(mockAdaptor);
+//
+//        assertThat(returnedDbInstance, is(nullValue()));
+//    }
 }

@@ -2,99 +2,196 @@ package org.reactome.release;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.gk.model.GKInstance;
 import org.gk.model.ReactomeJavaConstants;
-import org.gk.persistence.MySQLAdaptor;
-import org.gk.schema.SchemaClass;
+import org.gk.util.GKApplicationUtilities;
+import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
+import org.neo4j.driver.types.Node;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
 public class BioModelsUtilities {
 
     private static final Logger logger = LogManager.getLogger();
+    public static final int EXIT_FAILURE = 1;
+    public static Long maxDbId;
+    public static String DATABASE_NAME = "databaseName";
+    public static String DBID = "dbId";
+    public static String STID = "stId";
+    public static String DISPLAY_NAME = "displayName";
+    public static String SCHEMA_CLASS = "schemaClass";
 
     /**
      * Attempts to find a 'BioModels Database' instance in the database. If there isn't one, it is created.
-     * @param dba -- MySQLAdaptor for database.
-     * @param instanceEdit -- GKInstance connecting user to modifications completed by this step.
-     * @return -- (GKInstance) The biomodels database instance
+     * @param tx -- Neo4j Driver Transaction
+     * @param instanceEdit -- Node connecting user to modifications completed by this step.
+     * @return -- (Node) The BioModels database instance
      */
-    public static GKInstance fetchBiomodelsReferenceDatabase(MySQLAdaptor dba, GKInstance instanceEdit) {
-        
+    public static Node fetchBioModelsReferenceDatabase(Transaction tx, Node instanceEdit) {
         //TODO Need to make this retrieval case insensitive using a REGEX
         logger.info("Attempting to fetch an existing BioModels reference database");
-        GKInstance biomodelsReferenceDatabase = retrieveBioModelsDatabaseInstance(dba);
+        Node biomodelsReferenceDatabase = retrieveBioModelsDatabaseInstance(tx);
 
         if (biomodelsReferenceDatabase == null) {
             logger.info("Creating BioModels reference database - no existing one was found");
-            biomodelsReferenceDatabase = createBioModelsDatabaseInstance(dba, instanceEdit);
+            biomodelsReferenceDatabase = createBioModelsDatabaseInstance(tx, instanceEdit);
         }
         return biomodelsReferenceDatabase;
     }
 
     /**
-     * Attempts to find the biomodels database instance.
-     * @param dba
-     * @return -- (GKInstance) The biomodels database instance, if it was found. Returns null if not.
+     * Attempts to find the BioModels database instance.
+     * @param tx -- Neo4j Driver Transaction
+     * @return -- (Node) The BioModels database instance, if it was found. Returns null if not.
      */
-    public static GKInstance retrieveBioModelsDatabaseInstance(MySQLAdaptor dba) {
-
-        GKInstance biomodelsReferenceDatabase = null;
+    public static Node retrieveBioModelsDatabaseInstance(Transaction tx) {
+        Node biomodelsReferenceDatabase = null;
         try {
-            @SuppressWarnings("unchecked")
-            Collection<GKInstance> biomodelsReferenceDatabaseCollection = dba.fetchInstanceByAttribute(
-                    ReactomeJavaConstants.ReferenceDatabase,
-                    ReactomeJavaConstants.name,
-                    "=",
-                    "BioModels");
-            // TODO: Once merged into develop, this collection null check can be handled by 'safeList' in CollectionUtils
-            if (biomodelsReferenceDatabaseCollection != null && biomodelsReferenceDatabaseCollection.size()  != 0) {
-                biomodelsReferenceDatabase = biomodelsReferenceDatabaseCollection.iterator().next();
+            Result result = tx.run("MATCH (n:DatabaseObject:ReferenceDatabase) WHERE 'BioModels' IN n.name RETURN n");
+            if (result.hasNext()) {
+                Record record = result.single();
+                biomodelsReferenceDatabase = record.get("n").asNode();
             }
-        } catch (Exception e) {
+        } catch (Neo4jException e) {
             logAndThrow("Unable to retrieve BioModels reference database", e);
         }
         return biomodelsReferenceDatabase;
     }
 
     /**
-     * Creates biomodels database instance.
-     * @param dba
-     * @param instanceEdit
-     * @return -- (GKInstance) The biomodels database instance
+     * Creates BioModels database instance.
+     * @param tx -- Neo4j Driver Transaction
+     * @param instanceEdit -- Node connecting user to modifications completed by this step.
+     * @return -- (Node) The BioModels database instance
      */
-    private static GKInstance createBioModelsDatabaseInstance(MySQLAdaptor dba, GKInstance instanceEdit) {
-
-        GKInstance biomodelsReferenceDatabase;
-        biomodelsReferenceDatabase = new GKInstance();
-        biomodelsReferenceDatabase.setDbAdaptor(dba);
-        SchemaClass referenceDatabase = dba.getSchema().getClassByName(ReactomeJavaConstants.ReferenceDatabase);
-        biomodelsReferenceDatabase.setSchemaClass(referenceDatabase);
+    private static Node createBioModelsDatabaseInstance(Transaction tx, Node instanceEdit) {
+        Node biomodelsReferenceDatabase = null;
 
         try {
-            biomodelsReferenceDatabase.addAttributeValue(ReactomeJavaConstants.created, instanceEdit);
             String bioModelsDatabaseName = "BioModels Database";
-            biomodelsReferenceDatabase.addAttributeValue(
-                    ReactomeJavaConstants.name, Arrays.asList(bioModelsDatabaseName, "BioModels")
-            );
-            biomodelsReferenceDatabase.setDisplayName(bioModelsDatabaseName);
 
+            HashMap<String, Object> props = new HashMap<>();
             //TODO Check if both accessUrl and Url should be using https
-            biomodelsReferenceDatabase.addAttributeValue(
-                    ReactomeJavaConstants.accessUrl, "https://www.ebi.ac.uk/biomodels/###ID###"
-            );
-            biomodelsReferenceDatabase.addAttributeValue(
-                    ReactomeJavaConstants.url, "https://www.ebi.ac.uk/biomodels/"
-            );
-            dba.storeInstance(biomodelsReferenceDatabase);
+            props.put(ReactomeJavaConstants.accessUrl, "https://www.ebi.ac.uk/biomodels/###ID###");
+            props.put(DBID, maxDbId + 1);
+            props.put(DISPLAY_NAME, bioModelsDatabaseName);
+            props.put(ReactomeJavaConstants.name, Arrays.asList(bioModelsDatabaseName, "BioModels"));
+            props.put(SCHEMA_CLASS, ReactomeJavaConstants.ReferenceDatabase);
+            props.put(ReactomeJavaConstants.url, "https://www.ebi.ac.uk/biomodels/");
+
+            biomodelsReferenceDatabase = createNode(tx, Collections.singletonList(ReactomeJavaConstants.ReferenceDatabase), props);
+            createRelationship(tx, instanceEdit, biomodelsReferenceDatabase, ReactomeJavaConstants.created, 0, 1);
         } catch (Exception e) {
             logger.error("Unable to create BioModels reference database", e);
+            System.exit(EXIT_FAILURE);
         }
-        logger.info("Successfully created BioModels reference database with db id of " +
-                biomodelsReferenceDatabase.getDBID());
+        logger.info("Successfully created BioModels reference database with db id of {}", biomodelsReferenceDatabase.get(DBID));
 
         return biomodelsReferenceDatabase;
+    }
+
+    /**
+     * Retrieves a DatabaseObject from the db by its dbId
+     * @param tx -- Neo4j Driver Transaction
+     * @param dbId -- dbId of the node to retrieve
+     * @return -- (Node) The DatabaseObject
+     */
+    public static Node getNodeByDbId(Transaction tx, long dbId) {
+        String query = "MATCH (n:DatabaseObject {dbId: $nodeId}) RETURN n";
+        Value parameters = Values.parameters("nodeId", dbId);
+        Result result = tx.run(query, parameters);
+        Record record = result.single();
+        return record.get("n").asNode();
+    }
+
+    /**
+     * Create a DatabaseObject in the database with specified properties and labels
+     * @param tx -- Neo4j Driver Transaction
+     * @param props -- Properties of DatabaseObject
+     * @return -- (Node) The created DatabaseObject
+     */
+    public static Node createNode(Transaction tx, List<String> labels, HashMap<String, Object> props) {
+        String nodeLabels = String.join(":", labels);
+        String query = "CREATE (n:DatabaseObject:" + nodeLabels + createNodeQuery(props) + ") RETURN n";
+        Result result = tx.run(query, props);
+        Record record = result.single();
+        Node node = record.get("n").asNode();
+        maxDbId++;
+        return node;
+    }
+
+    private static String createNodeQuery(HashMap<String, Object> props) {
+        String query = " {";
+        List<String> queryParams = new ArrayList<>();
+        for (String key : props.keySet()) {
+            queryParams.add(key + ": $" + key);
+        }
+        query += String.join(", ", queryParams);
+        query += "}";
+        return query;
+    }
+
+    public static void createRelationship(Transaction tx, Node from, Node to, String relationshipType, int order, int stoichiometry) {
+        String query = "MATCH (n1:DatabaseObject {dbId: $fromDbId}) " +
+                "MATCH (n2:DatabaseObject {dbId: $toDbId}) " +
+                "CREATE (n1)-[r:" + relationshipType + " {order: $order, stoichiometry: $stoichiometry}]->(n2)";
+        Value parameters = Values.parameters(
+                "fromDbId", from.get(DBID),
+                "toDbId", to.get(DBID),
+                "order", order,
+                "stoichiometry", stoichiometry);
+        tx.run(query, parameters);
+    }
+
+    /**
+     * Returns the maximal dbId of a DatabaseObject stored in the database
+     * @param tx -- Neo4j Driver Transaction
+     * @return -- (long) max dbId
+     */
+    public static long getMaxDbId(Transaction tx) {
+        String maxDbIdQuery = "MATCH (n:DatabaseObject) WHERE exists(n.dbId) RETURN n ORDER BY n.dbId DESC LIMIT 1";
+        Result result = tx.run(maxDbIdQuery);
+
+        Node node = null;
+        try {
+            Record record = result.single();
+            node = record.get("n").asNode();
+        } catch (NoSuchRecordException e) {
+            logAndThrow("Failed to fetch maxDbId", e);
+        }
+        return node.get(DBID).asLong();
+    }
+
+    public static String getDateTime() {
+        Calendar calendar = GKApplicationUtilities.getCalendar();
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append(calendar.get(Calendar.YEAR)).append("-");
+
+        int month = calendar.get(Calendar.MONTH);
+        if (month < 10) buffer.append("0");
+        buffer.append(month).append("-");
+
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        if (day < 10) buffer.append("0");
+        buffer.append(day);
+
+        buffer.append(" ");
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        if (hour < 10) buffer.append("0");
+        buffer.append(hour).append(":");
+
+        int minute = calendar.get(Calendar.MINUTE);
+        if (minute < 10) buffer.append("0");
+        buffer.append(minute).append(":");
+
+        int sec = calendar.get(Calendar.SECOND);
+        if (sec < 10) buffer.append("0");
+        buffer.append(sec);
+
+        return buffer.toString();
     }
 
     public static void logAndThrow(String errorMessage, Throwable e) {
