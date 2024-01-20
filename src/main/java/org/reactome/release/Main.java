@@ -96,11 +96,13 @@ public class Main {
     }
 
     private static Driver getDriver(Properties props) {
-        String neo4jUri = props.getProperty("neo4jUri", "bolt://localhost:7687");
-        String neo4jUser = props.getProperty("neo4jUser", "neo4j");
-        String neo4jPassword = props.getProperty("neo4jPassword", "neo4j");
+        String neo4jUser = props.getProperty("user", "neo4j");
+        String neo4jPass = props.getProperty("password", "neo4j");
+        String neo4jHost = props.getProperty("host", "localhost");
+        String neo4jPort = props.getProperty("port", "7687");
+        String neo4jUri = "bolt://" + neo4jHost + ":" + neo4jPort;
 
-        return GraphDatabase.driver(neo4jUri, AuthTokens.basic(neo4jUser, neo4jPassword));
+        return GraphDatabase.driver(neo4jUri, AuthTokens.basic(neo4jUser, neo4jPass));
     }
 
     /**
