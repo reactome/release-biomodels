@@ -2,7 +2,7 @@ ARG REPO_DIR=/opt/release-biomodels
 
 
 # ===== stage 1 =====
-FROM eclipse-temurin:11-jdk-focal AS setup-env
+FROM maven:3.9.6-eclipse-temurin-11-focal AS setup-env
 
 ARG REPO_DIR
 
@@ -11,10 +11,6 @@ WORKDIR ${REPO_DIR}
 COPY . .
 
 SHELL ["/bin/bash", "-c"]
-
-# install maven
-RUN apt-get update && \
-    apt-get install -y maven
 
 # run lint if container started
 ENTRYPOINT []
