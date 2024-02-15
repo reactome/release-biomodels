@@ -3,7 +3,11 @@ package org.reactome.release;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.gk.model.ReactomeJavaConstants;
-import org.neo4j.driver.*;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Node;
 
@@ -15,22 +19,23 @@ import java.util.*;
 import static org.reactome.release.BioModelsUtilities.*;
 
 /**
- * @author jweiser
- *
+ * Main class for BioModels insertion
  */
 public class Main {
 
-    private static final Map<String, Node> bioModelsInstances = new HashMap<>();
-    private static final Logger logger = LogManager.getLogger();
+    private static final Map<String, Node> BIO_MODELS_INSTANCES = new HashMap<>();
+    private static final Logger LOGGER = LogManager.getLogger();
 
     /**
-     * @param args Command line arguments for the BioModels program
+     * Main method
+     *
+     * @param args Command line arguments
      */
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        logger.info("Running BioModels insertion");
+        LOGGER.info("Running BioModels insertion");
         runBioModelsInsertion(args);
-        logger.info("Completed BioModels insertion in {} seconds.", (System.currentTimeMillis() - start)/1000L);
+        LOGGER.info("Completed BioModels insertion in {} seconds.", (System.currentTimeMillis() - start) / 1000L);
     }
 
     private static void runBioModelsInsertion(String[] args) {
@@ -41,7 +46,7 @@ public class Main {
 
         try (Driver driver = getDriver(props); Session session = driver.session()) {
             session.writeTransaction(tx -> {
-                maxDbId = BioModelsUtilities.getMaxDbId(tx);
+                long maxDbId = BioModelsUtilities.getMaxDbId(tx);
 
                 // Create new instanceEdit in database to track modified pathways
                 long personId = Long.parseLong(props.getProperty("personId"));
@@ -51,14 +56,14 @@ public class Main {
 
                 Node referenceDatabase = BioModelsUtilities.fetchBioModelsReferenceDatabase(tx, instanceEdit);
 
-                for (Node pathway: getPathwaysWithBioModelsIds(tx, pathwayStableIdToBioModelsIds.keySet())) {
+                for (Node pathway : getPathwaysWithBioModelsIds(tx, pathwayStableIdToBioModelsIds.keySet())) {
                     String pathwayExtendedDisplayName = "[Pathway:" + pathway.get(DBID) + "] " + pathway.get(DISPLAY_NAME);
-                    logger.info("Adding BioModels ids to pathway {}", pathwayExtendedDisplayName);
+                    LOGGER.info("Adding BioModels ids to pathway {}", pathwayExtendedDisplayName);
                     Set<String> bioModelsIds = pathwayStableIdToBioModelsIds.get(pathway.get(STID).asString());
                     List<Node> bioModelsDatabaseIdentifiers =
                             createBioModelsDatabaseIdentifiers(bioModelsIds, referenceDatabase, instanceEdit, tx);
                     try {
-                        for (int i=0; i < bioModelsDatabaseIdentifiers.size(); i++) {
+                        for (int i = 0; i < bioModelsDatabaseIdentifiers.size(); i++) {
                             Node bioModelsDatabaseIdentifier = bioModelsDatabaseIdentifiers.get(i);
                             BioModelsUtilities.createRelationship(tx, pathway, bioModelsDatabaseIdentifier,
                                     ReactomeJavaConstants.crossReference, i, 1);
@@ -69,7 +74,7 @@ public class Main {
                         BioModelsUtilities.logAndThrow("Unable to update pathway " + pathwayExtendedDisplayName +
                                 " with BioModels ids " + bioModelsIds, e);
                     }
-                    logger.info("BioModels ids successfully added to pathway " + pathwayExtendedDisplayName);
+                    LOGGER.info("BioModels ids successfully added to pathway " + pathwayExtendedDisplayName);
                 }
                 tx.commit();
                 return null; // Return value for a transaction
@@ -81,8 +86,9 @@ public class Main {
 
     /**
      * Load program configuration properties from a file
-     * @param pathToResources -- Path to file containing config properties
-     * @return -- (Properties) Configuration properties for the program
+     *
+     * @param pathToResources Path to file containing config properties
+     * @return Configuration properties for the program
      */
     private static Properties loadProperties(String pathToResources) {
         Properties props = new Properties();
@@ -106,11 +112,13 @@ public class Main {
     }
 
     /**
-     * Creates a DatabaseIdentifier instance for the BioModel identifier, if it hasn't already been created during the current run.
-     * @param bioModelsIds -- Set of BioModels IDs
-     * @param instanceEdit -- Node instanceEdit attached to the person ID that is executing this program
-     * @param tx -- Neo4j Driver Transaction
-     * @return -- Returns a list of DatabaseIdentifier objects pertaining to the BioModel identifier
+     * Creates a DatabaseIdentifier instance for the BioModel identifier
+     *
+     * @param bioModelsIds Set of BioModels IDs
+     * @param referenceDatabase Node instanceEdit attached to the person ID that is executing this program
+     * @param instanceEdit Neo4j Driver Transaction
+     * @param tx Neo4j Driver Transaction
+     * @return List of DatabaseIdentifier objects pertaining to the BioModel identifier
      */
     private static List<Node> createBioModelsDatabaseIdentifiers(Set<String> bioModelsIds, Node referenceDatabase,
                                                                  Node instanceEdit, Transaction tx) {
@@ -120,10 +128,10 @@ public class Main {
         for (String bioModelsId : bioModelsIds) {
 
             // If the identifier already had an object created during this run, use that. Otherwise, create one.
-            if (bioModelsInstances.get(bioModelsId) != null) {
-                bioModelsDatabaseIdentifiers.add(bioModelsInstances.get(bioModelsId));
+            if (BIO_MODELS_INSTANCES.get(bioModelsId) != null) {
+                bioModelsDatabaseIdentifiers.add(BIO_MODELS_INSTANCES.get(bioModelsId));
             } else {
-                logger.info("Creating database identifier for BioModels id {}", bioModelsId);
+                LOGGER.info("Creating database identifier for BioModels id {}", bioModelsId);
 
                 Node bioModelsDatabaseIdentifier = null;
                 try {
@@ -149,8 +157,8 @@ public class Main {
                 }
 
                 bioModelsDatabaseIdentifiers.add(bioModelsDatabaseIdentifier);
-                bioModelsInstances.put(bioModelsId, bioModelsDatabaseIdentifier);
-                logger.info("Successfully created database identifier for BioModels id {}", bioModelsId);
+                BIO_MODELS_INSTANCES.put(bioModelsId, bioModelsDatabaseIdentifier);
+                LOGGER.info("Successfully created database identifier for BioModels id {}", bioModelsId);
             }
         }
 
@@ -170,14 +178,14 @@ public class Main {
     }
 
     private static Node createInstanceEdit(Transaction tx, long defaultPersonId, String note) {
-        logger.info("Creating new instance edit for person id {}", defaultPersonId);
+        LOGGER.info("Creating new instance edit for person id {}", defaultPersonId);
 
         Node defaultPerson = null;
         try {
             defaultPerson = BioModelsUtilities.getNodeByDbId(tx, defaultPersonId);
         } catch (Exception e) {
             BioModelsUtilities.logAndThrow("Could not fetch Person entity with ID " + defaultPersonId +
-                ". Please check that a Person entity exists in the database with this ID", e);
+                    ". Please check that a Person entity exists in the database with this ID", e);
         }
 
         Node newIE = null;
@@ -199,7 +207,7 @@ public class Main {
 
             BioModelsUtilities.createRelationship(tx, defaultPerson, newIE,
                     ReactomeJavaConstants.author, 0, 1);
-            logger.info("Successfully created new instance edit with db id {} for person id {}", newIE.get(DBID), defaultPerson.get(DBID));
+            LOGGER.info("Successfully created new instance edit with db id {} for person id {}", newIE.get(DBID), defaultPerson.get(DBID));
         } catch (Exception e) {
             BioModelsUtilities.logAndThrow("Unable to create instance edit", e);
         }

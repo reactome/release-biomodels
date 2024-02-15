@@ -3,39 +3,41 @@ package org.reactome.release;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.gk.model.ReactomeJavaConstants;
-import org.gk.util.GKApplicationUtilities;
 import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.Neo4jException;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.types.Node;
 
 import java.util.*;
 
-public class BioModelsUtilities {
+public final class BioModelsUtilities {
 
-    private static final Logger logger = LogManager.getLogger();
-    public static final int EXIT_FAILURE = 1;
-    public static Long maxDbId;
-    public static String DATABASE_NAME = "databaseName";
-    public static String DBID = "dbId";
-    public static String STID = "stId";
-    public static String DISPLAY_NAME = "displayName";
-    public static String SCHEMA_CLASS = "schemaClass";
+    private static final Logger LOGGER = LogManager.getLogger();
+    private static final int EXIT_FAILURE = 1;
+    private static Long maxDbId;
+    private static final String DATABASE_NAME = "databaseName";
+    private static final String DBID = "dbId";
+    private static final String STID = "stId";
+    private static final String DISPLAY_NAME = "displayName";
+    private static final String SCHEMA_CLASS = "schemaClass";
+
+    private BioModelsUtilities() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Attempts to find a 'BioModels Database' instance in the database. If there isn't one, it is created.
-     * @param tx -- Neo4j Driver Transaction
-     * @param instanceEdit -- Node connecting user to modifications completed by this step.
-     * @return -- (Node) The BioModels database instance
+     *
+     * @param tx           Neo4j Driver Transaction
+     * @param instanceEdit Node connecting user to modifications completed by this step.
+     * @return The BioModels database instance
      */
     public static Node fetchBioModelsReferenceDatabase(Transaction tx, Node instanceEdit) {
-        //TODO Need to make this retrieval case insensitive using a REGEX
-        logger.info("Attempting to fetch an existing BioModels reference database");
+        LOGGER.info("Attempting to fetch an existing BioModels reference database");
         Node biomodelsReferenceDatabase = retrieveBioModelsDatabaseInstance(tx);
 
         if (biomodelsReferenceDatabase == null) {
-            logger.info("Creating BioModels reference database - no existing one was found");
+            LOGGER.info("Creating BioModels reference database - no existing one was found");
             biomodelsReferenceDatabase = createBioModelsDatabaseInstance(tx, instanceEdit);
         }
         return biomodelsReferenceDatabase;
@@ -43,8 +45,9 @@ public class BioModelsUtilities {
 
     /**
      * Attempts to find the BioModels database instance.
-     * @param tx -- Neo4j Driver Transaction
-     * @return -- (Node) The BioModels database instance, if it was found. Returns null if not.
+     *
+     * @param tx Neo4j Driver Transaction
+     * @return The BioModels database instance, if found; otherwise, null.
      */
     public static Node retrieveBioModelsDatabaseInstance(Transaction tx) {
         Node biomodelsReferenceDatabase = null;
@@ -62,9 +65,10 @@ public class BioModelsUtilities {
 
     /**
      * Creates BioModels database instance.
-     * @param tx -- Neo4j Driver Transaction
-     * @param instanceEdit -- Node connecting user to modifications completed by this step.
-     * @return -- (Node) The BioModels database instance
+     *
+     * @param tx           Neo4j Driver Transaction
+     * @param instanceEdit Node connecting user to modifications completed by this step.
+     * @return The BioModels database instance
      */
     private static Node createBioModelsDatabaseInstance(Transaction tx, Node instanceEdit) {
         Node biomodelsReferenceDatabase = null;
@@ -73,7 +77,6 @@ public class BioModelsUtilities {
             String bioModelsDatabaseName = "BioModels Database";
 
             HashMap<String, Object> props = new HashMap<>();
-            //TODO Check if both accessUrl and Url should be using https
             props.put(ReactomeJavaConstants.accessUrl, "https://www.ebi.ac.uk/biomodels/###ID###");
             props.put(DBID, maxDbId + 1);
             props.put(DISPLAY_NAME, bioModelsDatabaseName);
@@ -81,22 +84,23 @@ public class BioModelsUtilities {
             props.put(SCHEMA_CLASS, ReactomeJavaConstants.ReferenceDatabase);
             props.put(ReactomeJavaConstants.url, "https://www.ebi.ac.uk/biomodels/");
 
-            biomodelsReferenceDatabase = createNode(tx, Collections.singletonList(ReactomeJavaConstants.ReferenceDatabase), props);
+            biomodelsReferenceDatabase = createNode(tx, Arrays.asList(ReactomeJavaConstants.ReferenceDatabase), props);
             createRelationship(tx, instanceEdit, biomodelsReferenceDatabase, ReactomeJavaConstants.created, 0, 1);
         } catch (Exception e) {
-            logger.error("Unable to create BioModels reference database", e);
+            LOGGER.error("Unable to create BioModels reference database", e);
             System.exit(EXIT_FAILURE);
         }
-        logger.info("Successfully created BioModels reference database with db id of {}", biomodelsReferenceDatabase.get(DBID));
+        LOGGER.info("Successfully created BioModels reference database with db id of {}", biomodelsReferenceDatabase.get(DBID));
 
         return biomodelsReferenceDatabase;
     }
 
     /**
      * Retrieves a DatabaseObject from the db by its dbId
-     * @param tx -- Neo4j Driver Transaction
-     * @param dbId -- dbId of the node to retrieve
-     * @return -- (Node) The DatabaseObject
+     *
+     * @param tx   Neo4j Driver Transaction
+     * @param dbId dbId of the node to retrieve
+     * @return The DatabaseObject
      */
     public static Node getNodeByDbId(Transaction tx, long dbId) {
         String query = "MATCH (n:DatabaseObject {dbId: $nodeId}) RETURN n";
@@ -108,9 +112,11 @@ public class BioModelsUtilities {
 
     /**
      * Create a DatabaseObject in the database with specified properties and labels
-     * @param tx -- Neo4j Driver Transaction
-     * @param props -- Properties of DatabaseObject
-     * @return -- (Node) The created DatabaseObject
+     *
+     * @param tx    Neo4j Driver Transaction
+     * @param labels Labels for the node
+     * @param props Properties of DatabaseObject
+     * @return The created DatabaseObject
      */
     public static Node createNode(Transaction tx, List<String> labels, HashMap<String, Object> props) {
         String nodeLabels = String.join(":", labels);
@@ -133,6 +139,16 @@ public class BioModelsUtilities {
         return query;
     }
 
+    /**
+     * Create a relationship between two nodes
+     *
+     * @param tx               Neo4j Driver Transaction
+     * @param from             Source node
+     * @param to               Target node
+     * @param relationshipType Type of relationship
+     * @param order            Order of the relationship
+     * @param stoichiometry    Stoichiometry of the relationship
+     */
     public static void createRelationship(Transaction tx, Node from, Node to, String relationshipType, int order, int stoichiometry) {
         String query = "MATCH (n1:DatabaseObject {dbId: $fromDbId}) " +
                 "MATCH (n2:DatabaseObject {dbId: $toDbId}) " +
@@ -147,23 +163,21 @@ public class BioModelsUtilities {
 
     /**
      * Returns the maximal dbId of a DatabaseObject stored in the database
-     * @param tx -- Neo4j Driver Transaction
-     * @return -- (long) max dbId
+     *
+     * @param tx Neo4j Driver Transaction
+     * @return The maximal dbId
      */
-    public static long getMaxDbId(Transaction tx) {
-        String maxDbIdQuery = "MATCH (n:DatabaseObject) WHERE exists(n.dbId) RETURN n ORDER BY n.dbId DESC LIMIT 1";
-        Result result = tx.run(maxDbIdQuery);
-
-        Node node = null;
-        try {
-            Record record = result.single();
-            node = record.get("n").asNode();
-        } catch (NoSuchRecordException e) {
-            logAndThrow("Failed to fetch maxDbId", e);
-        }
-        return node.get(DBID).asLong();
+    public static Long getMaxDbId(Transaction tx) {
+        String query = "MATCH (n:DatabaseObject) RETURN max(n.dbId) AS maxDbId";
+        Result result = tx.run(query);
+        Record record = result.single();
+        return record.get("maxDbId").asLong();
     }
 
+    /**
+     * Returns the current date and time in the format yyyy-MM-dd HH:mm:ss.
+     * @return The current date and time
+     */
     public static String getDateTime() {
         Calendar calendar = GKApplicationUtilities.getCalendar();
         StringBuilder buffer = new StringBuilder();
@@ -194,8 +208,14 @@ public class BioModelsUtilities {
         return buffer.toString();
     }
 
-    public static void logAndThrow(String errorMessage, Throwable e) {
-        logger.error(errorMessage, e);
+    /**
+     * Log an error message and throw a RuntimeException
+     *
+     * @param errorMessage Error message to log
+     * @param e            Exception to log
+     */
+    private static void logAndThrow(String errorMessage, Throwable e) {
+        LOGGER.error(errorMessage, e);
         throw new RuntimeException(errorMessage, e);
     }
 }
