@@ -16,7 +16,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.reactome.release.BioModelsUtilities.*;
+import static org.reactome.release.BioModelsUtilities.createInstanceEdit;
+import static org.reactome.release.BioModelsUtilities.createNode;
+import static org.reactome.release.BioModelsUtilities.createRelationship;
+import static org.reactome.release.BioModelsUtilities.fetchBioModelsReferenceDatabase;
+import static org.reactome.release.BioModelsUtilities.getMaxDbId;
+import static org.reactome.release.BioModelsUtilities.getNodeByDbId;
+import static org.reactome.release.BioModelsUtilities.getDateTime;
+import static org.reactome.release.BioModelsUtilities.logAndThrow;
+import static org.reactome.release.BioModelsUtilities.parse;
 
 /**
  * Main class for BioModels insertion
@@ -46,15 +54,15 @@ public class Main {
 
         try (Driver driver = getDriver(props); Session session = driver.session()) {
             session.writeTransaction(tx -> {
-                long maxDbId = BioModelsUtilities.getMaxDbId(tx);
+                long maxDbId = getMaxDbId(tx);
 
                 // Create new instanceEdit in database to track modified pathways
                 long personId = Long.parseLong(props.getProperty("personId"));
                 Node instanceEdit = createInstanceEdit(tx, personId, "BioModels reference database creation");
                 Map<String, Set<String>> pathwayStableIdToBioModelsIds =
-                        ModelsTSVParser.parse(pathToModels2Pathways);
+                        parse(pathToModels2Pathways);
 
-                Node referenceDatabase = BioModelsUtilities.fetchBioModelsReferenceDatabase(tx, instanceEdit);
+                Node referenceDatabase = fetchBioModelsReferenceDatabase(tx, instanceEdit);
 
                 for (Node pathway : getPathwaysWithBioModelsIds(tx, pathwayStableIdToBioModelsIds.keySet())) {
                     String pathwayExtendedDisplayName = "[Pathway:" + pathway.get(DBID) + "] " + pathway.get(DISPLAY_NAME);
@@ -65,13 +73,13 @@ public class Main {
                     try {
                         for (int i = 0; i < bioModelsDatabaseIdentifiers.size(); i++) {
                             Node bioModelsDatabaseIdentifier = bioModelsDatabaseIdentifiers.get(i);
-                            BioModelsUtilities.createRelationship(tx, pathway, bioModelsDatabaseIdentifier,
+                            createRelationship(tx, pathway, bioModelsDatabaseIdentifier,
                                     ReactomeJavaConstants.crossReference, i, 1);
                         }
-                        BioModelsUtilities.createRelationship(tx, instanceEdit, pathway,
+                        createRelationship(tx, instanceEdit, pathway,
                                 ReactomeJavaConstants.modified, 0, 1);
                     } catch (Exception e) {
-                        BioModelsUtilities.logAndThrow("Unable to update pathway " + pathwayExtendedDisplayName +
+                        logAndThrow("Unable to update pathway " + pathwayExtendedDisplayName +
                                 " with BioModels ids " + bioModelsIds, e);
                     }
                     LOGGER.info("BioModels ids successfully added to pathway " + pathwayExtendedDisplayName);
@@ -80,7 +88,7 @@ public class Main {
                 return null; // Return value for a transaction
             });
         } catch (Exception e) {
-            BioModelsUtilities.logAndThrow("Error during BioModels insertion", e);
+            logAndThrow("Error during BioModels insertion", e);
         }
     }
 
@@ -95,7 +103,7 @@ public class Main {
         try {
             props.load(Files.newInputStream(Paths.get(pathToResources)));
         } catch (IOException e) {
-            BioModelsUtilities.logAndThrow("Error loading properties file: " + pathToResources, e);
+            logAndThrow("Error loading properties file: " + pathToResources, e);
         }
 
         return props;
@@ -145,15 +153,15 @@ public class Main {
                     props.put(SCHEMA_CLASS, ReactomeJavaConstants.DatabaseIdentifier);
                     props.put(ReactomeJavaConstants.url, referenceDatabase.get(ReactomeJavaConstants.url).asString() + bioModelsId);
 
-                    bioModelsDatabaseIdentifier = BioModelsUtilities.createNode(tx, Collections.singletonList(ReactomeJavaConstants.DatabaseIdentifier), props);
+                    bioModelsDatabaseIdentifier = createNode(tx, Collections.singletonList(ReactomeJavaConstants.DatabaseIdentifier), props);
                     maxDbId++;
 
-                    BioModelsUtilities.createRelationship(tx, instanceEdit, bioModelsDatabaseIdentifier,
+                    createRelationship(tx, instanceEdit, bioModelsDatabaseIdentifier,
                             ReactomeJavaConstants.created, 0, 1);
-                    BioModelsUtilities.createRelationship(tx, bioModelsDatabaseIdentifier, referenceDatabase,
+                    createRelationship(tx, bioModelsDatabaseIdentifier, referenceDatabase,
                             ReactomeJavaConstants.referenceDatabase, 0, 1);
                 } catch (Exception e) {
-                    BioModelsUtilities.logAndThrow("Unable to create BioModels database identifier for " + bioModelsId, e);
+                    logAndThrow("Unable to create BioModels database identifier for " + bioModelsId, e);
                 }
 
                 bioModelsDatabaseIdentifiers.add(bioModelsDatabaseIdentifier);
@@ -168,7 +176,7 @@ public class Main {
     private static List<Node> getPathwaysWithBioModelsIds(Transaction tx, Set<String> pathwayStableIds) {
         List<Node> pathwayNodes = new ArrayList<>();
         String query = "MATCH (p:DatabaseObject:Pathway) WHERE p.stId IN $pathwayStableIds RETURN p";
-        Result result = tx.run(query, Collections.singletonMap("pathwayStableIds", pathwayStableIds));
+        org.neo4j.driver.Result result = tx.run(query, Collections.singletonMap("pathwayStableIds", pathwayStableIds));
         while (result.hasNext()) {
             Record record = result.next();
             pathwayNodes.add(record.get("p").asNode());
@@ -177,20 +185,28 @@ public class Main {
         return pathwayNodes;
     }
 
+        /**
+     * Creates a new instance edit for the specified person ID and note.
+     *
+     * @param tx             Neo4j Driver Transaction
+     * @param defaultPersonId The ID of the person for whom the instance edit is created
+     * @param note           A note describing the instance edit
+     * @return The newly created instance edit Node
+     */
     private static Node createInstanceEdit(Transaction tx, long defaultPersonId, String note) {
         LOGGER.info("Creating new instance edit for person id {}", defaultPersonId);
 
         Node defaultPerson = null;
         try {
-            defaultPerson = BioModelsUtilities.getNodeByDbId(tx, defaultPersonId);
+            defaultPerson = getNodeByDbId(tx, defaultPersonId);
         } catch (Exception e) {
-            BioModelsUtilities.logAndThrow("Could not fetch Person entity with ID " + defaultPersonId +
+            logAndThrow("Could not fetch Person entity with ID " + defaultPersonId +
                     ". Please check that a Person entity exists in the database with this ID", e);
         }
 
         Node newIE = null;
         try {
-            String dateTime = BioModelsUtilities.getDateTime();
+            String dateTime = getDateTime();
             String date = dateTime.split(" ")[0];
             String displayName = defaultPerson.get(ReactomeJavaConstants.surname).asString() + ", " +
                     defaultPerson.get(ReactomeJavaConstants.firstname).asString() + ", " + date;
@@ -202,14 +218,14 @@ public class Main {
             props.put(ReactomeJavaConstants.note, note);
             props.put(SCHEMA_CLASS, ReactomeJavaConstants.InstanceEdit);
 
-            newIE = BioModelsUtilities.createNode(tx, Collections.singletonList(ReactomeJavaConstants.InstanceEdit), props);
+            newIE = createNode(tx, Collections.singletonList(ReactomeJavaConstants.InstanceEdit), props);
             maxDbId++;
 
-            BioModelsUtilities.createRelationship(tx, defaultPerson, newIE,
+            createRelationship(tx, defaultPerson, newIE,
                     ReactomeJavaConstants.author, 0, 1);
             LOGGER.info("Successfully created new instance edit with db id {} for person id {}", newIE.get(DBID), defaultPerson.get(DBID));
         } catch (Exception e) {
-            BioModelsUtilities.logAndThrow("Unable to create instance edit", e);
+            logAndThrow("Unable to create instance edit", e);
         }
         return newIE;
     }
