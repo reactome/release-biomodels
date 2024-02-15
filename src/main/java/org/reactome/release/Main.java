@@ -16,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.reactome.release.BioModelsUtilities.createInstanceEdit;
 import static org.reactome.release.BioModelsUtilities.createNode;
 import static org.reactome.release.BioModelsUtilities.createRelationship;
 import static org.reactome.release.BioModelsUtilities.fetchBioModelsReferenceDatabase;
@@ -24,7 +23,15 @@ import static org.reactome.release.BioModelsUtilities.getMaxDbId;
 import static org.reactome.release.BioModelsUtilities.getNodeByDbId;
 import static org.reactome.release.BioModelsUtilities.getDateTime;
 import static org.reactome.release.BioModelsUtilities.logAndThrow;
-import static org.reactome.release.BioModelsUtilities.parse;
+
+import static org.reactome.release.BioModelsUtilities.DBID;
+import static org.reactome.release.BioModelsUtilities.DATABASE_NAME;
+import static org.reactome.release.BioModelsUtilities.DISPLAY_NAME;
+import static org.reactome.release.BioModelsUtilities.SCHEMA_CLASS;
+import static org.reactome.release.BioModelsUtilities.STID;
+import static org.reactome.release.BioModelsUtilities.maxDbId;
+import static org.reactome.release.ModelsTSVParser.parse;
+
 
 /**
  * Main class for BioModels insertion

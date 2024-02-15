@@ -3,10 +3,12 @@ package org.reactome.release;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.gk.model.ReactomeJavaConstants;
+import org.gk.util.GKApplicationUtilities;
 import org.neo4j.driver.*;
 import org.neo4j.driver.exceptions.Neo4jException;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.types.Node;
+import org.neo4j.driver.Record;
 
 import java.util.*;
 
@@ -14,12 +16,12 @@ public final class BioModelsUtilities {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final int EXIT_FAILURE = 1;
-    private static Long maxDbId;
-    private static final String DATABASE_NAME = "databaseName";
-    private static final String DBID = "dbId";
-    private static final String STID = "stId";
-    private static final String DISPLAY_NAME = "displayName";
-    private static final String SCHEMA_CLASS = "schemaClass";
+    public static Long maxDbId;
+    public static final String DATABASE_NAME = "databaseName";
+    public static final String DBID = "dbId";
+    public static final String STID = "stId";
+    public static final String DISPLAY_NAME = "displayName";
+    public static final String SCHEMA_CLASS = "schemaClass";
 
     private BioModelsUtilities() {
         throw new IllegalStateException("Utility class");
@@ -214,7 +216,7 @@ public final class BioModelsUtilities {
      * @param errorMessage Error message to log
      * @param e            Exception to log
      */
-    private static void logAndThrow(String errorMessage, Throwable e) {
+    public static void logAndThrow(String errorMessage, Throwable e) {
         LOGGER.error(errorMessage, e);
         throw new RuntimeException(errorMessage, e);
     }
