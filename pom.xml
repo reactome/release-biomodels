@@ -143,7 +143,7 @@
 
             execution section also allows 'mvn clean package' command to create two jars - with/without dependencies
             -->
-            <plugin>
+	    <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.2.0</version>
@@ -169,24 +169,31 @@
                 </executions>
             </plugin>
 
-            <!-- run checkstyle linter -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.1.1</version>
-                <!-- uncomment below for custom configs -->
-                <!--
-                <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
-                </configuration>
-                -->
+                <dependencies>
+                    <!-- This dependency allows Checkstyle to understand Java 11 syntax -->
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>8.44</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
+                        <id>checkstyle-check</id>
+                        <phase>validate</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <!-- Optional: Set encoding -->
+                    <encoding>UTF-8</encoding>
+                </configuration>
             </plugin>
 
             <!-- executes unit tests -->
