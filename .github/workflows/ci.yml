@@ -30,9 +30,13 @@ jobs:
                 REPO_DIR : /opt/release-biomodels
               run: |
                 docker build --build-arg REPO_DIR="$REPO_DIR" --target setup-env -t lint-image .
+                echo $?
                 docker run --name lint-container lint-image
+                echo $?
                 docker cp lint-container:"$REPO_DIR"/lint.log .
+                echo $?
                 echo "MSG_COUNT=$(wc -l lint.log | awk '{print $1}')" >> "$GITHUB_ENV"
+                echo $?
             
             - if: ${{ env.MSG_COUNT != 0 }}
               run: |
