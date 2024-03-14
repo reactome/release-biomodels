@@ -61,7 +61,7 @@ public class Main {
 
         try (Driver driver = getDriver(props); Session session = driver.session()) {
             session.writeTransaction(tx -> {
-                long maxDbId = getMaxDbId(tx);
+                maxDbId = getMaxDbId(tx);
 
                 // Create new instanceEdit in database to track modified pathways
                 long personId = Long.parseLong(props.getProperty("personId"));
