@@ -99,6 +99,11 @@
     </dependencies>
 
     <repositories>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</repository>
+
         <!-- EBI repo -->
         <repository>
             <id>nexus-ebi-repo</id>
@@ -111,6 +116,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        
         <!-- EBI SNAPSHOT repo -->
         <repository>
             <id>nexus-ebi-snapshot-repo</id>
