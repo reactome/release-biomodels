@@ -112,23 +112,20 @@ pipeline {
 		stage('Post: Archive Outputs'){
 			steps{
 				script{
-					def releaseVersion = utils.getReleaseVersion()
-					def biomodelsPath = "${env.ABS_RELEASE_PATH}/biomodels"
+				       def releaseVersion = utils.getReleaseVersion()
 
-					// Ensure that the models2pathways.tsv file is in the right place for archiving.
-					sh "cp ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/models2pathways.tsv ${biomodelsPath}/models2pathways.tsv"
+                                       sh "sudo service neo4j stop"
+                                       sh "sudo neo4j-admin dump --database=graph.db --to=biomodels_graph_database.dump"
+                                       sh "tar -zcf biomodels_graph_database.dump.tgz biomodels_graph_database.dump"
+                                       sh "rm biomodels_graph_database.dump"
+                                       sh "sudo service neo4j start"
+                    
+                                       sh "mv logs biomodels-logs"
+				       def dataFiles = ["models2pathways.tsv", "analysis-core/analysis-biomodels-v${releaseVersion}.bin"]
+				       def logFiles = ["biomodels-logs/*", "biomodels-mapper/jsbml.log"]
+				       def foldersToDelete = ["analysis-core*"]
 
-					// Creates tar archive out of 'graph.db/' folder that should exist in the graph-importer directory.
-					dir("graph-importer"){
-						utils.createGraphDatabaseTarFile("graph.db/", "biomodels")
-					}
-					sh "mv graph-importer/biomodels_graph_database.dump* ."
-
-					def dataFiles = ["${biomodelsPath}/models2pathways.tsv", "analysis-core/analysis-biomodels-v${releaseVersion}.bin"]
-					def logFiles = ["${biomodelsPath}/logs/*", "${biomodelsPath}/jsbml.log", "/tmp/biomodels.log", "graph-importer/parser-messages.txt"]
-					def foldersToDelete = ["graph-importer*", "analysis-core*", "release-jenkins-utils*"]
-
-					utils.cleanUpAndArchiveBuildFiles("biomodels", dataFiles, logFiles, foldersToDelete)
+				       utils.cleanUpAndArchiveBuildFiles("biomodels", dataFiles, logFiles, foldersToDelete)
 				}
 			}
 		}
