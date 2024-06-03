@@ -112,20 +112,21 @@ pipeline {
 		stage('Post: Archive Outputs'){
 			steps{
 				script{
-				       def releaseVersion = utils.getReleaseVersion()
+					def releaseVersion = utils.getReleaseVersion()
 
-                                       sh "sudo service neo4j stop"
-                                       sh "sudo neo4j-admin dump --database=graph.db --to=biomodels_graph_database.dump"
-                                       sh "tar -zcf biomodels_graph_database.dump.tgz biomodels_graph_database.dump"
-                                       sh "rm biomodels_graph_database.dump"
-                                       sh "sudo service neo4j start"
-                    
-                                       sh "mv logs biomodels-logs"
-				       def dataFiles = ["models2pathways.tsv", "analysis-core/analysis-biomodels-v${releaseVersion}.bin"]
-				       def logFiles = ["biomodels-logs/*", "biomodels-mapper/jsbml.log"]
-				       def foldersToDelete = ["analysis-core*"]
+					sh "sudo service neo4j stop"
+					sh "sudo neo4j-admin dump --database=graph.db --to=biomodels_graph_database.dump"
+					sh "tar -zcf biomodels_graph_database.dump.tgz biomodels_graph_database.dump"
+					sh "rm biomodels_graph_database.dump"
+					sh "sudo service neo4j start"
+					
+					sh "mv logs biomodels-logs"
+					sh "cp output/models2pathways.tsv ."
+					def dataFiles = ["models2pathways.tsv", "analysis-core/analysis-biomodels-v${releaseVersion}.bin"]
+					def logFiles = ["biomodels-logs/*", "biomodels-mapper/jsbml.log"]
+					def foldersToDelete = ["analysis-core*"]
 
-				       utils.cleanUpAndArchiveBuildFiles("biomodels", dataFiles, logFiles, foldersToDelete)
+					utils.cleanUpAndArchiveBuildFiles("biomodels", dataFiles, logFiles, foldersToDelete)
 				}
 			}
 		}
