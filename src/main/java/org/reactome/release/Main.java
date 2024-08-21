@@ -31,6 +31,7 @@ import static org.reactome.release.BioModelsUtilities.SCHEMA_CLASS;
 import static org.reactome.release.BioModelsUtilities.STID;
 import static org.reactome.release.BioModelsUtilities.maxDbId;
 import static org.reactome.release.ModelsTSVParser.parse;
+import static org.reactome.release.common.Utils.getDriver;
 
 
 /**
@@ -114,16 +115,6 @@ public class Main {
         }
 
         return props;
-    }
-
-    private static Driver getDriver(Properties props) {
-        String neo4jUser = props.getProperty("user", "neo4j");
-        String neo4jPass = props.getProperty("password", "neo4j");
-        String neo4jHost = props.getProperty("host", "localhost");
-        String neo4jPort = props.getProperty("port", "7687");
-        String neo4jUri = "bolt://" + neo4jHost + ":" + neo4jPort;
-
-        return GraphDatabase.driver(neo4jUri, AuthTokens.basic(neo4jUser, neo4jPass));
     }
 
     /**
