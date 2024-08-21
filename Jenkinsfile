@@ -97,6 +97,14 @@ pipeline {
 			}
 		}
 
+		stage('Post: Verify BioModels links added'){
+		    steps{
+		        script{
+		            sh "java -jar target/verifier-*-jar-with-dependencies.jar"
+		        }
+		    }
+		}
+
 		// Backs up release_current after all BioModels changes have been made.
 		stage('Post: Back up DB'){
 			steps{
