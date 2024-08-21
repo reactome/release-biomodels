@@ -21,7 +21,7 @@ public class BioModelsUtilitiesTester {
     @Mock
     Result mockResult;
     @Mock
-    Record mockRecord;
+    org.neo4j.driver.Record mockRecord;
     @Mock
     Value mockValue;
     @Mock
