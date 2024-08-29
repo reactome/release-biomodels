@@ -91,7 +91,7 @@ pipeline {
 				script{
 				        def releaseVersion = utils.getReleaseVersion()
 					withCredentials([file(credentialsId: 'Config', variable: 'ConfigFile')]) {
-						sh "java -jar target/biomodels-*-jar-with-dependencies.jar $ConfigFile ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/models2pathways.tsv"
+						sh "java -jar target/biomodels-jar-with-dependencies.jar $ConfigFile ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/models2pathways.tsv"
 					}
 				}
 			}
@@ -100,7 +100,7 @@ pipeline {
 		stage('Post: Verify BioModels links added'){
 		    steps{
 		        script{
-		            sh "java -jar target/verifier-*-jar-with-dependencies.jar"
+		            sh "java -jar target/verifier-jar-with-dependencies.jar"
 		        }
 		    }
 		}
