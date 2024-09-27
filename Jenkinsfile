@@ -121,7 +121,7 @@ pipeline {
 					sh "sudo service neo4j start"
 					
 					sh "mv logs biomodels-logs"
-					sh "cp output/models2pathways.tsv ."
+					sh "cp biomodels-mapper/output/models2pathways.tsv ."
 					def dataFiles = ["models2pathways.tsv", "analysis-core/analysis-biomodels-v${releaseVersion}.bin"]
 					def logFiles = ["biomodels-logs/*", "biomodels-mapper/jsbml.log"]
 					def foldersToDelete = ["analysis-core*"]
