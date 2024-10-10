@@ -97,10 +97,13 @@ pipeline {
 			}
 		}
 
+		// Verifies BioModels cross-references added to graph database by comparing with the graph database of the previous release
 		stage('Post: Verify BioModels links added'){
 		    steps{
 		        script{
-		            sh "java -jar target/verifier-jar-with-dependencies.jar"
+				def previousReleaseVersion = utils.getPreviousReleaseVersion()
+				sh "docker run -p 7475:7474 -p 7688:7687 -e NEO4J_dbms_memory_heap_maxSize=8g reactome/graphdb:Release${previousReleaseVersion}"
+				sh "java -jar target/verifier-jar-with-dependencies.jar"
 		        }
 		    }
 		}
