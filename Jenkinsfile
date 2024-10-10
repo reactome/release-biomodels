@@ -80,7 +80,7 @@ pipeline {
 			steps{
 				script{
 					// BioModels Jar file
-					utils.buildJarFile()
+					utils.buildJarFileWithPackage()
 				}
 			}
 		}
