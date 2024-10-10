@@ -103,7 +103,9 @@ pipeline {
 		        script{
 				def previousReleaseVersion = utils.getPreviousReleaseVersion()
 				sh "docker run -p 7475:7474 -p 7688:7687 -e NEO4J_dbms_memory_heap_maxSize=8g reactome/graphdb:Release${previousReleaseVersion}"
-				sh "java -jar target/verifier-jar-with-dependencies.jar"
+				withCredentials([usernamePassword(credentialsId: 'neo4jUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
+					sh "java -jar target/verifier-jar-with-dependencies.jar --currentUser $user --currentPassword $pass --previousPort 7688"
+				}
 		        }
 		    }
 		}
