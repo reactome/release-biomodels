@@ -30,6 +30,9 @@ pipeline {
 					dir("analysis-core"){
 						def analysisBinName = "analysis_v${releaseVersion}.bin"
 
+						sh "git pull"
+						sh "git checkout feature/new-pwb"
+						
 						// Builds jar file for analysis-core.
 						utils.buildJarFileWithPackage()
 						
