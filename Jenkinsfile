@@ -133,6 +133,7 @@ pipeline {
 						   -v \$(pwd)/input:/input \\
 						   --net=host --name ${CONT_NAME_RELEASE_BIOMODELS} ${ECR_URL_RELEASE_BIOMODELS}:latest \\
 	                                           /bin/bash -c "java -jar target/biomodels-*-jar-with-dependencies.jar $ConfigFile ./input/models2pathways.tsv"
+						 """
 					}
 				}
 			}
