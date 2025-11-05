@@ -54,7 +54,7 @@ pipeline {
 							    -v \$(pwd)/output:/output \\
 							    --net=host \\
 							    --name ${CONT_NAME_ANALYSIS_CORE} ${ECR_URL_ANALYSIS_CORE}:latest \\
-	                                                    /bin/bash -c "java -jar target/analysis-core-exec.jar --user $user --password '\$pass\' --output ./output/${analysisBinName} --verbose"
+	                                                    /bin/bash -c "java -jar target/analysis-core-exec.jar --user $user --password '\$pass\' --output /output/${analysisBinName} --verbose"
 						        """
 						}
 
