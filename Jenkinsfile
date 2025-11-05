@@ -50,12 +50,13 @@ pipeline {
 						withCredentials([usernamePassword(credentialsId: 'neo4jUsernamePassword', passwordVariable: 'pass', usernameVariable: 'user')]){
 							sh "mkdir -p output && rm -rf output/*"
 							sh """
-                                                            docker run \\
-							    -v \$(pwd)/output:/output \\
-							    --net=host \\
-							    --name ${CONT_NAME_ANALYSIS_CORE} ${ECR_URL_ANALYSIS_CORE}:latest \\
-	                                                    /bin/bash -c "java -jar target/analysis-core-exec.jar --user $user --password '\$pass\' --output /output/${analysisBinName} --verbose"
-						        """
+                               CMD="docker run \\
+                                      -v \$(pwd)/output:/output \\
+                                      --net=host \\
+                                      --name ${CONT_NAME_ANALYSIS_CORE} ${ECR_URL_ANALYSIS_CORE}:latest \\
+                                      /bin/bash -c \\"java -jar target/analysis-core-exec.jar --user $user --password '\$pass' --output /output/${analysisBinName} --verbose\\""
+									eval "\$CMD"
+                               """
 						}
 
 						// Symlinks the analysis-biomodels-vXX.bin file to the generic analysis.bin path.
@@ -128,12 +129,18 @@ pipeline {
 						sh "mkdir -p input"
 						sh "rm input/* -f"
 						sh "cp ${env.ABS_DOWNLOAD_PATH}/${releaseVersion}/models2pathways.tsv input"
+						
+						sh "mkdir -p configs"
+						sh "rm -rf configs/*"
+						sh "cp $ConfigFile configs/config.prop"
 						sh """
                                                    docker run \\
 						   -v \$(pwd)/input:/input \\
+						   -v \$(pwd)/configs:/configs \\
 						   --net=host --name ${CONT_NAME_RELEASE_BIOMODELS} ${ECR_URL_RELEASE_BIOMODELS}:latest \\
-	                                           /bin/bash -c "java -jar target/biomodels-*-jar-with-dependencies.jar $ConfigFile ./input/models2pathways.tsv"
+	                                           /bin/bash -c "java -jar target/biomodels-*-jar-with-dependencies.jar /configs/config.prop ./input/models2pathways.tsv"
 						 """
+						sh "rm configs/config.prop"
 					}
 				}
 			}
