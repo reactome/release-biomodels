@@ -93,10 +93,10 @@ pipeline {
 						sh "rm input/* -f"
 						sh "cp /usr/local/reactomes/Reactome/production/AnalysisService/input/analysis.bin input/"
 						sh """
-                                                   docker run \\
-						   -v \$(pwd)/output:/output \\
-	                                           -v \$(pwd)/input:/input \\
-					           -v $\(pwd)/logs:/opt/biomodels-mapper/logs \\
+                            docker run \\
+						      -v \$(pwd)/output:/output \\
+	                          -v \$(pwd)/input:/input \\
+					          -v \$(pwd)/logs:/opt/biomodels-mapper/logs \\
 						   --net=host --name ${CONT_NAME_BIOMODELS_MAPPER} ${ECR_URL_BIOMODELS_MAPPER}:latest \\
 	                                           /bin/bash -c "java -jar -Xms5120M -Xmx10240M target/biomodels-mapper-2.0.jar -o /output/ -r /input/analysis.bin -b /tmp/BioModels_Database-r31_pub-sbml_files"
 					        """
