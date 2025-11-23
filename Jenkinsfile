@@ -19,7 +19,7 @@ pipeline {
         }
 	stages {
 		// This stage checks that two upstream projects, OrthoinferenceStableIdentifierHistory and AddLinks-Insertion, were run successfully for their last build.
-		stage('Check OrthoinferenceStableIdentifierHistory and AddLinks-Insertion builds succeeded'){
+		stage('Check OrthoinferenceStableIdentifierHistory'){
 			steps{
 				script{
 					utils.checkUpstreamBuildsSucceeded("Relational-Database-Updates/job/OrthoinferenceStableIdentifierHistory")
