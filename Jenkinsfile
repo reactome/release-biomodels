@@ -138,7 +138,7 @@ pipeline {
 						   -v \$(pwd)/input:/input \\
 						   -v \$(pwd)/configs:/configs \\
 						   --net=host --name ${CONT_NAME_RELEASE_BIOMODELS} ${ECR_URL_RELEASE_BIOMODELS}:latest \\
-	                                           /bin/bash -c "java -jar target/biomodels-*-jar-with-dependencies.jar /configs/config.prop ./input/models2pathways.tsv"
+	                                           /bin/bash -c "java -jar target/biomodels-*-jar-with-dependencies.jar /configs/config.prop /input/models2pathways.tsv"
 						 """
 						sh "rm configs/config.prop"
 					}
