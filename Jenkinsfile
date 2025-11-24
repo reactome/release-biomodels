@@ -171,7 +171,7 @@ pipeline {
 					sh "mv biomodels-mapper/logs biomodels-mapper-logs"
 					sh "cp biomodels-mapper/output/models2pathways.tsv ."
 					def dataFiles = ["models2pathways.tsv", "analysis-core/output/analysis_v${releaseVersion}.bin", "biomodels_graph_database.dump.tgz"]
-					def logFiles = ["biomodels-mapper-logs/*", "biomodels-mapper/jsbml.log"]
+					def logFiles = ["biomodels-mapper-logs"]
 					def foldersToDelete = ["analysis-core*"]
 
 					utils.cleanUpAndArchiveBuildFiles("biomodels", dataFiles, logFiles, foldersToDelete)
