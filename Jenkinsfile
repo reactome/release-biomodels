@@ -65,8 +65,8 @@ pipeline {
 						sh "ln -sf ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/${analysisBinName} ${env.ANALYSIS_SERVICE_INPUT_ABS_PATH}/analysis.bin"
 
 						// Restart Tomcat so that the updated graph DB and analysis bin are being used.
-						sh "sudo service tomcat9 stop"
-						sh "sudo service tomcat9 start"
+						sh "sudo service tomcat stop"
+						sh "sudo service tomcat start"
 					}
 				}
 			}
